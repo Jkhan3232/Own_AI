@@ -122,6 +122,8 @@ const login = asyncHandler(async (req, res, next) => {
     }
   )(req, res, next);
 });
+
+// get all users and filtering
 const getMe = asyncHandler(async (req, res) => {
   try {
     const token = req.cookies.token || "";
@@ -131,32 +133,51 @@ const getMe = asyncHandler(async (req, res) => {
       throw new ApiError(401, "Login first");
     }
 
-    // The user object (req.user) should be available after token verification
     const user = req.user;
 
-    // If user is an Admin, they can access any user's details by userId
+    // If Admin, allow access to all users or a specific user by userId with search/filter options
     if (user.role === "Admin") {
-      const userId = req.params.userId; // Assuming userId is passed in params
-      const targetUser = await User.findById(userId).select("-password");
+      const userId = req.params.userId;
 
-      if (!targetUser) {
-        throw new ApiError(404, "User not found");
+      if (userId) {
+        // Admin requesting details for a specific user
+        const targetUser = await User.findById(userId).select("-password");
+        if (!targetUser) {
+          throw new ApiError(404, "User not found");
+        }
+        return res
+          .status(200)
+          .json(
+            new ApiResponse(
+              200,
+              targetUser,
+              "User details retrieved successfully"
+            )
+          );
+      } else {
+        // Admin requesting all users with optional search/filter
+        const { name, email, country } = req.query; // Extract search/filter parameters
+
+        // Build query object based on filters
+        const query = {};
+        if (name) query.username = { $regex: name, $options: "i" }; // Case-insensitive regex search
+        if (email) query.email = { $regex: email, $options: "i" };
+        if (country) query.country = country;
+
+        const users = await User.find(query).select("-password");
+
+        if (users.length === 0) {
+          throw new ApiError(404, "No users found with the specified criteria");
+        }
+
+        return res
+          .status(200)
+          .json(new ApiResponse(200, users, "Users retrieved successfully"));
       }
-
-      return res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            targetUser,
-            "User details retrieved successfully"
-          )
-        );
     }
 
-    // If the user is not Admin, they can only access their own details
+    // Non-admin users can only access their own details
     const currentUser = await User.findById(user._id).select("-password");
-
     return res
       .status(200)
       .json(
@@ -168,49 +189,6 @@ const getMe = asyncHandler(async (req, res) => {
   }
 });
 
-const listUsers = asyncHandler(async (req, res) => {
-  try {
-    const token = req.cookies.token || "";
-
-    // Check if token exists
-    if (!token) {
-      throw new ApiError(401, "Login first");
-    }
-
-    // Ensure only Admins can access this route
-    const user = req.user;
-    if (user.role !== "Admin") {
-      throw new ApiError(403, "Access denied. Admins only");
-    }
-
-    // Search and filter functionality
-    const { name, email, country } = req.query; // Extract search/filter parameters
-
-    // Build query object based on filters
-    const query = {};
-    if (name) query.username = { $regex: name, $options: "i" }; // Case-insensitive regex search
-    if (email) query.email = { $regex: email, $options: "i" };
-    if (country) query.country = country;
-
-    // Fetch users based on search/filter conditions
-    const users = await User.find(query).select("-password");
-
-    // Check if any users were found
-    if (users.length === 0) {
-      throw new ApiError(404, "No users found");
-    }
-
-    // Respond with the filtered user list
-    return res
-      .status(200)
-      .json(new ApiResponse(200, users, "Users retrieved successfully"));
-  } catch (error) {
-    console.error(error);
-    throw new ApiError(500, "Failed to retrieve users");
-  }
-});
-
-// Logout route
 const logout = asyncHandler(async (req, res) => {
   try {
     // Clear the token cookie
@@ -226,4 +204,4 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 // Export endpoints
-export { register, login, getMe, logout, listUsers };
+export { register, login, getMe, logout };

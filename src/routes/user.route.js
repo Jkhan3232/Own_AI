@@ -7,7 +7,6 @@ import {
   getMe,
   logout,
   login,
-  listUsers,
 } from "../controllers/User.controller.js";
 // Initializing express router
 const router = Router();
@@ -20,8 +19,8 @@ router.route("/login").post(login);
 router.route("/getme").get(isAuthenticated, getMe);
 // Route for getting staff details
 router.route("/:userId").get(isAuthenticated, getMe);
-// Route for getting staff details and fitering
-router.route("/users").get(isAuthenticated, listUsers);
+// Route for getting staff details and filtering
+// router.route("/users").get(isAuthenticated, listUsers);
 // Route for user logout
 router.route("/logout").post(isAuthenticated, logout);
 

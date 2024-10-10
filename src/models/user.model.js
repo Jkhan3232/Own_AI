@@ -15,7 +15,7 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Email number is required"],
       unique: true,
-      lowecase: true,
+      lowercase: true,
       trim: true,
     },
     phone: {
@@ -41,7 +41,7 @@ const userSchema = new Schema(
       type: String,
       enum: ["Admin", "Staff"], // Limiting roles to Admin or Staff
       default: "Staff", // Default to 'Staff'
-      //   required: true,
+      required: true,
     },
   },
   {

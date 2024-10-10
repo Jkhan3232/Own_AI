@@ -112,40 +112,6 @@
 					"response": []
 				},
 				{
-					"name": "AdminGetUser",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"country\": \"\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:3000/api/v1/users/users",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"v1",
-								"users",
-								"users"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "getuserbyid",
 					"request": {
 						"method": "GET",
